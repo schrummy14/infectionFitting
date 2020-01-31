@@ -12,6 +12,7 @@ class odeSolve():
         self.rtol = 1.0e-3
         self.atol = 1.0e-6
         self.dt = 1.0e-6
+        self.maxDt = np.inf
         self.failed = 0
         self.timeStep = []
 
@@ -69,9 +70,10 @@ class odeSolve():
             y1 = y + 16.0*k1/135.0 + 6656.0*k3/12825.0 + 28561.0*k4/56430.0 - 9.0*k5/50.0 + 2.0*k6/55.0
             y2 = y + 25.0*k1/216.0 + 1408.0*k3/2565.0 + 2197.0*k4/4104.0 - k5/5.0
 
-            err = np.linalg.norm(y2-y1)
+            errA = np.linalg.norm(y2-y1)
+            errR = np.linalg.norm(y2-y1)/np.linalg.norm(y1)
 
-            if err < self.atol:
+            if errA < self.atol and errR < self.rtol: 
                 count += 1
                 z = np.zeros([count+1,numVars])
                 z[:-1,:] = yn
@@ -82,7 +84,9 @@ class odeSolve():
             else:
                 done = False
                 self.failed += 1
-            dt = 0.9*dt*np.power(self.atol/(1.0*err),1.0/5.0)
+            dt = 0.9*dt*np.power(self.atol/(1.0*errA+1.0e-15),1.0/5.0)
+            if dt > self.maxDt:
+                dt = self.maxDt
         
         out = np.zeros([count+1,numVars+1])
         out[:,0] = tn
@@ -125,7 +129,9 @@ class odeSolve():
                 self.timeStep.append(dt)
             else:
                 done = False
-            dt = 0.9*dt*np.power(self.atol/(1.0*err),1/2)
+            dt = 0.9*dt*np.power(self.atol/(1.0*err+1.0e-15),1/2)
+            if dt > self.maxDt:
+                dt = self.maxDt
         
         out = np.zeros([count+1,numVars+1])
         out[:,0] = tn
@@ -143,6 +149,7 @@ class odeSolve():
         out[0,1:] = self.y0
         out[0,0] = t0
         dt = (tend-t0)/self.numSteps
+        self.timeStep.append(dt)
 
         for k in range(self.numSteps):
             tn = out[k,0]
@@ -153,6 +160,7 @@ class odeSolve():
             k4 = dt * self.fun(tn+dt, yn + k3)
             out[k+1,1:] = out[k,1:] + (k1+2.0*k2+2.0*k3+k4)/6.0
             out[k+1,0] = out[k,0] + dt
+            self.timeStep.append(dt)
 
         return out
 
@@ -167,11 +175,13 @@ class odeSolve():
         out[0,1:] = self.y0
         out[0,0] = t0
         dt = (tend-t0)/self.numSteps
+        self.timeStep.append(dt)
 
         for k in range(self.numSteps):
             k1 = out[k,1:] + dt*self.fun(out[k,0],out[k,1:])
             out[k+1,1:] = out[k,1:] + 0.5*dt*(self.fun(out[k,0],out[k,1:]) + self.fun(out[k,0]+dt,k1))
             out[k+1,0] = out[k,0] + dt
+            self.timeStep.append(dt)
 
         return out
 
@@ -185,9 +195,11 @@ class odeSolve():
         out[0,1:] = self.y0
         out[0,0] = t0
         dt = (tend-t0)/self.numSteps
+        self.timeStep.append(dt)
         for k in range(self.numSteps):
             out[k+1,1:] = out[k,1:] + dt*self.fun(out[k,0],out[k,1:])
             out[k+1,0] = out[k,0] + dt
+            self.timeStep.append(dt)
         
         return out
     
@@ -199,9 +211,15 @@ class odeSolve():
             return
         t = sol[:,0]
         plt.plot(t,self.timeStep)
+        plt.ylabel("Time Step Size")
 
         plt.subplot(212)
         y = sol[:,1:]
         plt.plot(t,y,'-o')
+        ylabelString = []
+        for k in range(len(self.y0)):
+            ylabelString.append("x[%i]" % k)
+        plt.xlabel("Time")
+        plt.legend(ylabelString)
         plt.show()
 
