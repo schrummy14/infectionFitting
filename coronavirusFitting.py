@@ -9,6 +9,8 @@ from scipy.optimize import fmin
 from scipy.optimize import minimize
 from scipy.optimize import least_squares
 
+TOTAL_POPULATION = 7530000000.0
+
 
 def sir(t,x,cS,cR,cD,tS,tR,tD):
     s = x[0]
@@ -41,9 +43,9 @@ def sirFit(b,t,iV,dV,rV):
 
 if __name__ == "__main__":
     #                    20     21     22     23     24      25      26      27      28      29      30
-    iVals = np.array([282.0, 332.0, 555.0, 653.0, 941.0, 2019.0, 2794.0, 4473.0, 6057.0, 7783.0, 9776.0])/1000000000.0
-    rVals = np.array([  0.0,   0.0,   0.0,  30.0,  36.0,   49.0,   54.0,   63.0,  111.0,  133.0,  187.0])/1000000000.0
-    dVals = np.array([  0.0,   0.0,   0.0,  18.0,  26.0,   56.0,   80.0,  107.0,  133.0,  170.0,  213.0])/1000000000.0
+    iVals = np.array([282.0, 332.0, 555.0, 653.0, 941.0, 2019.0, 2794.0, 4473.0, 6057.0, 7783.0, 9776.0])/TOTAL_POPULATION
+    rVals = np.array([  0.0,   0.0,   0.0,  30.0,  36.0,   49.0,   54.0,   63.0,  111.0,  133.0,  187.0])/TOTAL_POPULATION
+    dVals = np.array([  0.0,   0.0,   0.0,  18.0,  26.0,   56.0,   80.0,  107.0,  133.0,  170.0,  213.0])/TOTAL_POPULATION
     
     tVals = [k for k in range(len(iVals))]
 
@@ -78,10 +80,10 @@ if __name__ == "__main__":
     ode.solve()
     print("=======================================")
     print("========== Ending Statistics ==========")
-    print("             Dead: %10d" % int(1000000000.0*ode.sol[-1,4]))
-    print("        Recovered: %10d" % int(1000000000.0*ode.sol[-1,3]))
-    print("       Unaffected: %10d" % int(1000000000.0*ode.sol[-1,1]))
-    print("   Still Infected: %10d" % int(1000000000.0*ode.sol[-1,2]))
+    print("             Dead: %10d" % int(TOTAL_POPULATION*ode.sol[-1,4]))
+    print("        Recovered: %10d" % int(TOTAL_POPULATION*ode.sol[-1,3]))
+    print("       Unaffected: %10d" % int(TOTAL_POPULATION*ode.sol[-1,1]))
+    print("   Still Infected: %10d" % int(TOTAL_POPULATION*ode.sol[-1,2]))
     print("   Coeficients")
     print("   cS:", resB[0])
     print("   cR:", resB[1])
