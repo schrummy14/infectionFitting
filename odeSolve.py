@@ -27,6 +27,8 @@ class odeSolve():
             self.sol = self.rk12()
         elif self.solver == 'rk45':
             self.sol = self.rk45()
+        elif self.solver == "scipy45":
+            self.sol = self.sp45()
         else:
             print("ERROR: Solver not found. Current Solvers Include")
             print(
@@ -35,9 +37,32 @@ class odeSolve():
                 'mod-euler',
                 'rk4',
                 'rk12',
-                'rk45'
+                'rk45',
+                'scipy45'
                 ]
             )
+    
+    def sp45(self):
+        from scipy.integrate import solve_ivp as ode
+        
+        sol = ode(
+            fun=self.fun,
+            t_span=self.tspan,
+            y0=self.y0,
+            method='RK45',
+            max_step=self.maxDt,
+            rtol=self.rtol,
+            atol=self.atol
+        )
+
+        count = len(sol.t)
+        numVars = len(self.y0)
+        out = np.zeros([count,numVars+1])
+        out[:,0] = sol.t
+        out[:,1:] = np.transpose(sol.y)
+        dt = np.gradient(sol.t)
+        self.timeStep = dt
+        return out
 
     def rk45(self):
         t0 = self.tspan[0]
@@ -47,6 +72,8 @@ class odeSolve():
         tn = np.array([t0])
         dt = self.dt
         self.timeStep.append(dt)
+
+        oneOnFive = 1.0/5.0
 
         numVars = len(self.y0)
 
@@ -69,11 +96,10 @@ class odeSolve():
 
             y1 = y + 16.0*k1/135.0 + 6656.0*k3/12825.0 + 28561.0*k4/56430.0 - 9.0*k5/50.0 + 2.0*k6/55.0
             y2 = y + 25.0*k1/216.0 + 1408.0*k3/2565.0 + 2197.0*k4/4104.0 - k5/5.0
+            fE = y2-y1
+            err = dt * np.linalg.norm(fE/(np.max([np.max([np.abs(y),np.abs(y2)]),5.0e-16])),ord=np.inf)
 
-            errA = np.linalg.norm(y2-y1)
-            errR = np.linalg.norm(y2-y1)/np.linalg.norm(y1)
-
-            if errA < self.atol and errR < self.rtol: 
+            if err < self.rtol: 
                 count += 1
                 z = np.zeros([count+1,numVars])
                 z[:-1,:] = yn
@@ -84,7 +110,7 @@ class odeSolve():
             else:
                 done = False
                 self.failed += 1
-            dt = 0.9*dt*np.power(self.atol/(1.0*errA+1.0e-15),1.0/5.0)
+            dt = 0.8 * dt * np.power((self.rtol/err), oneOnFive)
             if dt > self.maxDt:
                 dt = self.maxDt
         
