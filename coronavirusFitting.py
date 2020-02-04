@@ -56,7 +56,6 @@ def getStats(t,X,iV,dV,rV):
     p = 6.0
     R2 = 1.0 - SSE/SST
     R2adj = 1.0 - SSE*(n-1.0)/(SST*(n-p-1.0))
-    # R2adj = 1.0 - (1.0 - R2)*(n-1.0)/(n-p-1.0)
     print("     SSE =",SSE)
     print("     SST =",SST)
     print("      r2 =", R2)
