@@ -248,4 +248,3 @@ class odeSolve():
         plt.xlabel("Time")
         plt.legend(ylabelString)
         plt.show()
-
