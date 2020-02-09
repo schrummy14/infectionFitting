@@ -11,7 +11,7 @@ from scipy.optimize import minimize
 from scipy.optimize import least_squares
 
 TOTAL_POPULATION = 7530000000.0
-
+NUMRUNS = 100
 
 def sir(t,x,cS,cR,cD,tS,tR,tD):
     s = x[0]
@@ -25,9 +25,14 @@ def sir(t,x,cS,cR,cD,tS,tR,tD):
     if i > 1.0:
         i = 0.0
 
-    dsdt = -(cS - tS*t)*s*i
-    drdt =  (cR + tR*t)*i
-    dddt =  (cD - tD*t)*i
+    # dsdt = -(cS - tS*t)*s*i
+    # drdt =  (cR + tR*t)*i
+    # dddt =  (cD - tD*t)*i
+
+    dsdt = -cS*np.exp(-tS*t)*s*i
+    drdt =  cR*np.exp( tR*t)*i
+    dddt =  cD*np.exp(-tD*t)*i
+
     if dddt < 0.0:
         dddt = 0.0
 
@@ -119,23 +124,23 @@ def printWrite(f, curStr):
     f.write(curStr + "\n")
 
 if __name__ == "__main__":
-    #                Jan 20     21     22     23     24      25      26      27      28      29      30       31    Feb 1        2        3        4
-    # iVals = np.array([282.0, 332.0, 555.0, 653.0, 941.0, 2019.0, 2794.0, 4473.0, 6057.0, 7783.0, 9776.0, 11377.0, 14549.0, 17295.0, 20588.0])/TOTAL_POPULATION
-    # rVals = np.array([  0.0,   0.0,   0.0,  30.0,  36.0,   49.0,   54.0,   63.0,  111.0,  133.0,  187.0,   252.0,   340.0,   487.0,   644.0])/TOTAL_POPULATION
-    # dVals = np.array([  0.0,   0.0,   0.0,  18.0,  26.0,   56.0,   80.0,  107.0,  133.0,  170.0,  213.0,   259.0,   305.0,   362.0,   426.0])/TOTAL_POPULATION
-
-	#                Jan 23     24      25      26      27      28      29      30       31    Feb 1        2        3        4        5        6
-    iVals = np.array([653.0, 941.0, 2019.0, 2794.0, 4473.0, 6057.0, 7783.0, 9776.0, 11377.0, 14549.0, 17295.0, 20588.0, 24503.0, 24630.0, 30877.0])/TOTAL_POPULATION
-    rVals = np.array([ 30.0,  36.0,   49.0,   54.0,   63.0,  111.0,  133.0,  187.0,   252.0,   340.0,   487.0,   644.0,   899.0,  1029.0,  1499.0])/TOTAL_POPULATION
-    dVals = np.array([ 18.0,  26.0,   56.0,   80.0,  107.0,  133.0,  170.0,  213.0,   259.0,   305.0,   362.0,   426.0,   492.0,   494.0,   636.0])/TOTAL_POPULATION
+	# #                Jan 23     24      25      26      27      28      29      30       31    Feb 1        2        3        4        5        6
+    # iVals = np.array([653.0, 941.0, 2019.0, 2794.0, 4473.0, 6057.0, 7783.0, 9776.0, 11377.0, 14549.0, 17295.0, 20588.0, 24503.0, 24630.0, 30877.0])/TOTAL_POPULATION
+    # rVals = np.array([ 30.0,  36.0,   49.0,   54.0,   63.0,  111.0,  133.0,  187.0,   252.0,   340.0,   487.0,   644.0,   899.0,  1029.0,  1499.0])/TOTAL_POPULATION
+    # dVals = np.array([ 18.0,  26.0,   56.0,   80.0,  107.0,  133.0,  170.0,  213.0,   259.0,   305.0,   362.0,   426.0,   492.0,   494.0,   636.0])/TOTAL_POPULATION
     
+    vals = np.genfromtxt("inputData.csv", delimiter=",")
+    iVals = vals[:,1]/TOTAL_POPULATION
+    rVals = vals[:,2]/TOTAL_POPULATION
+    dVals = vals[:,3]/TOTAL_POPULATION
+
     tVals = [k for k in range(len(iVals))]
 
     fun = lambda b: sirFit(b,tVals,iVals,dVals,rVals)
     minCost = np.inf
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])
     ub = np.array([1.0,1.0,1.0,1.0,1.0,1.0])
-    for k in tqdm(range(120)):
+    for k in tqdm(range(NUMRUNS)):
         b0 = np.random.rand()*(ub-lb) + lb
         curRes = least_squares(
             fun=fun, 
