@@ -11,7 +11,7 @@ from scipy.optimize import minimize
 from scipy.optimize import least_squares
 
 TOTAL_POPULATION = 7530000000.0
-NUMRUNS = 100
+NUMRUNS = 10
 
 def sir(t,x,cS,cR,cD,tS,tR,tD):
     s = x[0]
