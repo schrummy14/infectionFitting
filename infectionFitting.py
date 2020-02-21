@@ -68,10 +68,13 @@ def sirFit(b,t,iV,dV,rV):
     ode.solve()
     return 100*getRes(t,ode.sol,iV,dV,rV)
 
-def save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals):
+def save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals, infectionName = ''):
     SSE, SST, R2, R2adj = getStats(tVals, ode.sol, iVals, dVals, rVals)
     now = datetime.now()
-    filename = "results_" + now.strftime("%Y_%m_%d_%H_%M_%S") + ".txt"
+    if len(infectionName) > 1:
+        filename = "results_" + infectionName + now.strftime("_%Y_%m_%d_%H_%M_%S") + ".txt"
+    else:
+        filename = "results_" + now.strftime("%Y_%m_%d_%H_%M_%S") + ".txt"
     with open(filename,'w') as f:
         printWrite(f, "===================================")
         printWrite(f, "======== Ending Statistics ========")

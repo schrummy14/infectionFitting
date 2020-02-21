@@ -2,6 +2,7 @@ from infectionFitting import *
     
 totalPopulation = 7530000000.0
 numRuns = 15
+infectionName = "coronavirus"
 
 vals = np.genfromtxt("inputDataCoronaVirus.csv", delimiter=",")
 iVals = vals[:,1]/totalPopulation
@@ -25,7 +26,7 @@ ode.atol = 1.0e-14
 ode.y0 = np.array([1.0-iVals[0]-rVals[0]-dVals[0],iVals[0],rVals[0],dVals[0]])
 ode.tspan = [tVals[0], 0.25*365]
 ode.solve()
-save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals)
+save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals, infectionName)
 plt.plot(tVals,100*iVals,'b*')
 plt.plot(ode.sol[:,0], 100*ode.sol[:,2],'b-')
 plt.plot(tVals,100*rVals,'r*')
