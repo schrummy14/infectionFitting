@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class odeSolve():
-    def __init__(self, fun=None, solver='rk45'):
+    def __init__(self, fun=None, solver='rk45',events=None):
         self.solver = solver
         self.tspan = []
         self.sol = None
@@ -15,6 +15,9 @@ class odeSolve():
         self.maxDt = np.inf
         self.failed = 0
         self.timeStep = []
+        if events is not None:
+            events.terminal = True
+        self.events = events
 
     def solve(self):
         if self.solver == 'euler':
@@ -41,7 +44,7 @@ class odeSolve():
                 'scipy45'
                 ]
             )
-    
+
     def sp45(self):
         from scipy.integrate import solve_ivp as ode
         
@@ -52,7 +55,8 @@ class odeSolve():
             method='RK45',
             max_step=self.maxDt,
             rtol=self.rtol,
-            atol=self.atol
+            atol=self.atol,
+            events=self.events
         )
 
         count = len(sol.t)

@@ -9,6 +9,7 @@ from datetime import datetime
 from odeSolve import odeSolve
 from scipy.optimize import fmin
 from scipy.optimize import minimize
+from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import least_squares
 
 def sir(t,x,cS,cR,cD,tS,tR,tD):
@@ -67,6 +68,12 @@ def sirFit(b,t,iV,dV,rV):
     ode.tspan = [t[0], t[-1]]
     ode.solve()
     return 100*getRes(t,ode.sol,iV,dV,rV)
+
+def isZero(t,x):
+    if x[1] < 0.0:
+        return -1.0
+    else:
+        return  1.0
 
 def save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals, infectionName = ''):
     SSE, SST, R2, R2adj = getStats(tVals, ode.sol, iVals, dVals, rVals)
