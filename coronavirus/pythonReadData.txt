@@ -1,0 +1,5 @@
+url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-02-2020.csv'
+df = pd.read_csv(url)
+df = pd.read_csv(url,parse_dates=[2])
+gg = df.loc[df['Country/Region']=='Mainland China']
+region = df['Country/Region'].unique()
