@@ -89,6 +89,12 @@ def getTotalPopulation(region):
         totalPopulation = 38270000.0
     elif region == 'Mexico':
         totalPopulation = 129200000.0
+    elif region == 'Germany':
+        totalPopulation = 82790000.0
+    elif region == 'Turkey':
+        totalPopulation = 80810000.0
+    elif region == 'France':
+        totalPopulation = 66890000.0
     else:
         print("WARNING: Using world population...")
 
@@ -163,6 +169,11 @@ def printGrowthFactor(I):
     print(deltaI[1:]/deltaI[0:-1])
 
 
+def printRawData(I,R,D,T):
+    data = np.transpose(np.array([T,I,R,D]))
+    print("Days, Infected, Recovered, Deaths")
+    print(data)
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         region = sys.argv[1]
@@ -176,6 +187,8 @@ if __name__ == "__main__":
     print("\nGetting Data")
     I,R,D,T = createTimeData(region)
     
+    print("\nRaw Data")
+    printRawData(I,R,D,T)
     print("\nGrowth Factor")
     printGrowthFactor(I)
 
