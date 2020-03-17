@@ -95,6 +95,10 @@ def getTotalPopulation(region):
         totalPopulation = 80810000.0
     elif region == 'France':
         totalPopulation = 66890000.0
+    elif region == 'Korea, South':
+        totalPopulation = 51470000.0
+    elif region == 'India':
+        totalPopulation = 1339000000.0
     else:
         print("WARNING: Using world population...")
 
