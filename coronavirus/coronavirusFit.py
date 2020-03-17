@@ -5,6 +5,7 @@ import pandas as pd
 import datetime as dt
 from infectionFitting import *
     
+global totalPopulation
 totalPopulation = 7530000000.0
 numRuns = 15
 infectionName = "coronavirus"
@@ -15,21 +16,17 @@ startDate = dt.date(2020,1,22)
 endDate = dt.datetime.now() + dt.timedelta(days=-1)
 endDate = dt.date(endDate.year,endDate.month,endDate.day)
 baseURL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
-# gg = df.loc[df['Country/Region']=='Mainland China']
-# region = df['Country/Region'].unique()
 
 def getRegions():
     date = endDate + dt.timedelta(days=-3)
     mdy = getDateStr(date)
     url = baseURL + mdy
-    print(url)
     df = pd.read_csv(url,parse_dates=[2])
     regions = df['Country/Region'].unique()
     return regions
 
 def getData(date):
     mdy = getDateStr(date)
-    print(mdy)
     url = baseURL + mdy
     try:
         df = pd.read_csv(url,parse_dates=[2])
@@ -50,18 +47,69 @@ def getDateStr(date):
         mdy += "%s-2020.csv"%d
     return mdy
 
+def getTotalPopulation(region):
+    global totalPopulation
+    if region == 'world':
+        return
+    elif region == 'US':
+        totalPopulation = 327200000.0
+    elif region == 'Italy':
+        totalPopulation = 60480000.0
+    elif region == 'China':
+        totalPopulation = 1386000000.0
+    elif region == 'Mainland China':
+        totalPopulation = 1339724852.0
+    elif region == 'Panama':
+        totalPopulation = 4099000.0
+    elif region == 'Australia':
+        totalPopulation = 24600000.0
+    elif region == 'Croatia':
+        totalPopulation = 4076000.0
+    elif region == 'Burkina Faso':
+        totalPopulation = 19190000.0
+    elif region == 'Albania':
+        totalPopulation = 2877000.0
+    elif region == 'Canada':
+        totalPopulation = 37590000.0
+    elif region == 'United Kingdom':
+        totalPopulation = 66440000.0
+    elif region == 'Philippines':
+        totalPopulation = 104900000.0
+    elif region == 'Nepal':
+        totalPopulation = 29300000.0
+    elif region == 'Sri Lanka':
+        totalPopulation = 21440000.0
+    elif region == 'United Arab Emirates':
+        totalPopulation = 9400000.0
+    elif region == 'Thailand':
+        totalPopulation = 69040000.0
+    elif region == 'Iran':
+        totalPopulation = 81160000.0
+    elif region == 'Iraq':
+        totalPopulation = 38270000.0
+    elif region == 'Mexico':
+        totalPopulation = 129200000.0
+    else:
+        print("WARNING: Using world population...")
+
+
+
+
 def createTimeData(region):
     infected = []
     recoverd = []
     deaths = []
     days = []
 
-    posRegions = getRegions()
-    if region not in posRegions:
-        print("Region: %s, is not a posible region..." % region)
-        print("Possible Regions:\n")
-        print(posRegions)
-        exit()
+    if not (region == 'world' or region == 'all'):
+        posRegions = getRegions()
+        if region not in posRegions:
+            print("Region: %s, is not a posible region..." % region)
+            print("Possible Regions:\n")
+            print(posRegions)
+            exit()
+    
+    getTotalPopulation(region)
 
     k = 0
     while True:
@@ -74,6 +122,11 @@ def createTimeData(region):
             continue
         if region == "all":
             break
+        elif region == "world":
+            infected.append(np.sum(df['Confirmed']))
+            recoverd.append(np.sum(df['Recovered']))
+            deaths.append(np.sum(df['Deaths']))
+            days.append(k)
         else:
             gg = df.loc[df['Country/Region']==region]
             infected.append(np.sum(gg['Confirmed']))
@@ -99,7 +152,11 @@ def createTimeData(region):
             minIDlen = len(idc)
             minID = idc
 
-    return infected[minID],recoverd[minID],deaths[minID],days[minID]
+    if minIDlen > 3:
+        return infected[minID],recoverd[minID],deaths[minID],days[minID]
+    else:
+        print("Not enough data... Exiting...")
+        exit()
 
 def printGrowthFactor(I):
     deltaI = I[1:]-I[0:-1]
@@ -116,7 +173,10 @@ if __name__ == "__main__":
     else:
         region = 'US'
     
+    print("\nGetting Data")
     I,R,D,T = createTimeData(region)
+    
+    print("\nGrowth Factor")
     printGrowthFactor(I)
 
     iVals = I/totalPopulation
@@ -131,6 +191,7 @@ if __name__ == "__main__":
     doeVals = pyDOE.lhs(len(lb),numRuns,'center')
 
     # Run on multiple cores...
+    print("\nFitting Data")
     resB = runOne(fun, lb, ub, doeVals, numRuns)
 
     fun = lambda t,x: sir(t,x,resB[0],resB[1],resB[2],resB[3],resB[4],resB[5])
@@ -138,7 +199,7 @@ if __name__ == "__main__":
     ode.rtol = 1.0e-12
     ode.atol = 1.0e-14
     ode.y0 = np.array([1.0-iVals[0]-rVals[0]-dVals[0],iVals[0],rVals[0],dVals[0]])
-    ode.tspan = [0, 10.0*365] # Simulate until no one is still infected...
+    ode.tspan = [0, 100.0*365] # Simulate until no one is still infected...
     ode.solve()
     save(ode, resB, totalPopulation, tVals-tVals[0], iVals, rVals, dVals, infectionName, False)
     plt.plot(tVals-tVals[0],totalPopulation*iVals,'b*')
