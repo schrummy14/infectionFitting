@@ -58,7 +58,7 @@ def getTotalPopulation(region):
     elif region == 'China':
         totalPopulation = 1386000000.0
     elif region == 'Mainland China':
-        totalPopulation = 1339724852.0
+        totalPopulation = 1386000000.0
     elif region == 'Panama':
         totalPopulation = 4099000.0
     elif region == 'Australia':
@@ -138,7 +138,12 @@ def createTimeData(region):
             deaths.append(np.sum(df['Deaths']))
             days.append(k)
         else:
-            gg = df.loc[df['Country/Region']==region]
+            if region == 'China':
+                gg = df.loc[df['Country/Region']=='China']
+                if len(gg) == 0:
+                    gg = gg = df.loc[df['Country/Region']=='Mainland China']
+            else:
+                gg = df.loc[df['Country/Region']==region]
             infected.append(np.sum(gg['Confirmed']))
             recoverd.append(np.sum(gg['Recovered']))
             deaths.append(np.sum(gg['Deaths']))
@@ -186,7 +191,7 @@ if __name__ == "__main__":
             print(regions)
             exit()
     else:
-        region = 'US'
+        region = 'China'
     
     print("\nGetting Data")
     I,R,D,T = createTimeData(region)
