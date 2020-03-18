@@ -1,9 +1,12 @@
 
 import sys
+import pyDOE
 import numpy as np
 import pandas as pd
 import datetime as dt
-from infectionFitting import *
+import matplotlib.pyplot as plt
+import infectionFitting as infect
+# from infectionFitting import *
     
 global totalPopulation
 totalPopulation = 7530000000.0
@@ -207,23 +210,23 @@ if __name__ == "__main__":
 
     tVals = T
 
-    fun = lambda b: sirFit(b,tVals-tVals[0],iVals,dVals,rVals)
+    fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals,rVals)
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])
     ub = np.array([1.0,1.0,1.0,1.0,1.0,1.0])
     doeVals = pyDOE.lhs(len(lb),numRuns,'center')
 
     # Run on multiple cores...
     print("\nFitting Data")
-    resB = runOne(fun, lb, ub, doeVals, numRuns)
+    resB = infect.runOne(fun, lb, ub, doeVals, numRuns)
 
-    fun = lambda t,x: sir(t,x,resB[0],resB[1],resB[2],resB[3],resB[4],resB[5])
-    ode = odeSolve(fun = fun, solver = 'scipy45', events = isZero)
+    fun = lambda t,x: infect.sir(t,x,resB[0],resB[1],resB[2],resB[3],resB[4],resB[5])
+    ode = infect.odeSolve(fun = fun, solver = 'scipy45', events = infect.isZero)
     ode.rtol = 1.0e-12
     ode.atol = 1.0e-14
     ode.y0 = np.array([1.0-iVals[0]-rVals[0]-dVals[0],iVals[0],rVals[0],dVals[0]])
     ode.tspan = [0, 100.0*365] # Simulate until no one is still infected...
     ode.solve()
-    save(ode, resB, totalPopulation, tVals-tVals[0], iVals, rVals, dVals, infectionName, False)
+    infect.save(ode, resB, totalPopulation, tVals-tVals[0], iVals, rVals, dVals, region, True)
     plt.plot(tVals-tVals[0],totalPopulation*iVals,'b*')
     plt.plot(ode.sol[:,0], (totalPopulation*ode.sol[:,2]),'b-',label="Infected")
     plt.plot(tVals-tVals[0],totalPopulation*rVals,'r*')

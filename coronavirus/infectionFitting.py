@@ -1,15 +1,10 @@
 import time
-import pyDOE
 import numpy as np
 import scipy as sp
-import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 from datetime import datetime
 from odeSolve import odeSolve
-from scipy.optimize import fmin
-from scipy.optimize import minimize
-from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import least_squares
 
 def sir(t,x,cS,cR,cD,tS,tR,tD):
@@ -75,15 +70,13 @@ def isZero(t,x):
     else:
         return  1.0
 
-def save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals, infectionName = '', write2file=True):
+def save(ode, resB, totalPopulation, tVals, iVals, rVals, dVals, region, write2file=True):
     SSE, SST, R2, R2adj = getStats(tVals, ode.sol, iVals, dVals, rVals)
     
     if write2file:
+        reg = region.replace(' ','_')
         now = datetime.now()
-        if len(infectionName) > 1:
-            filename = "results_" + infectionName + now.strftime("_%Y_%m_%d_%H_%M_%S") + ".txt"
-        else:
-            filename = "results_" + now.strftime("%Y_%m_%d_%H_%M_%S") + ".txt"
+        filename = "results/" + reg + now.strftime("_%Y_%m_%d_%H_%M_%S") + ".txt"
         with open(filename,'w') as f:
             printWrite(f, "===================================", write2file)
             printWrite(f, "======== Ending Statistics ========", write2file)
