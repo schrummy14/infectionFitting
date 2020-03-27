@@ -25,7 +25,12 @@ def getRegions():
     mdy = getDateStr(date)
     url = baseURL + mdy
     df = pd.read_csv(url,parse_dates=[2])
-    regions = df['Country/Region'].unique()
+    cr = 'Country/Region'
+    try:
+        df[cr]
+    except:
+        cr = 'Country_Region'
+    regions = df[cr].unique()
     return regions
 
 def getData(date):
@@ -110,7 +115,6 @@ def getTotalPopulation(region):
 
 def createTimeData(region):
     infected = []
-    recoverd = []
     deaths = []
     days = []
 
@@ -143,7 +147,6 @@ def createTimeData(region):
                 break
             elif region == "world":
                 infected.append(np.sum(df['Confirmed']))
-                recoverd.append(np.sum(df['Recovered']))
                 deaths.append(np.sum(df['Deaths']))
                 days.append(k)
             else:
@@ -154,25 +157,20 @@ def createTimeData(region):
                 else:
                     gg = df.loc[df[cr]==region]
                 numInfected = np.sum(gg['Confirmed'])
-                numRecovered = np.sum(gg['Recovered'])
                 numDeaths = np.sum(gg['Deaths'])
-                if numInfected*numRecovered*numDeaths > 0:
+                if numInfected*numDeaths > 0:
                     infected.append(np.sum(gg['Confirmed']))
-                    recoverd.append(np.sum(gg['Recovered']))
                     deaths.append(np.sum(gg['Deaths']))
                     days.append(k)
         except:
             print(df)
     
     infected = np.array(infected)
-    recoverd = np.array(recoverd)
     deaths = np.array(deaths)
     days = np.array(days)
 
     ids = []
     temp = np.where(infected>0)
-    ids.append(temp[0])
-    temp = np.where(recoverd>0)
     ids.append(temp[0])
     temp = np.where(deaths>0)
     ids.append(temp[0])
@@ -183,7 +181,7 @@ def createTimeData(region):
             minID = idc
 
     if minIDlen > 3:
-        return infected[minID],recoverd[minID],deaths[minID],days[minID]
+        return infected[minID],deaths[minID],days[minID]
     else:
         print("Not enough data... Exiting...")
         exit()
@@ -193,9 +191,9 @@ def printGrowthFactor(I):
     print(deltaI[1:]/deltaI[0:-1])
 
 
-def printRawData(I,R,D,T):
-    data = np.transpose(np.array([T,I,R,D]))
-    print("Days, Infected, Recovered, Deaths")
+def printRawData(I,D,T):
+    data = np.transpose(np.array([T,I,D]))
+    print("Days, Infected, Deaths")
     print(data)
 
 if __name__ == "__main__":
@@ -209,20 +207,19 @@ if __name__ == "__main__":
         region = 'US'
     
     print("\nGetting Data")
-    I,R,D,T = createTimeData(region)
+    I,D,T = createTimeData(region)
     
     print("\nRaw Data")
-    printRawData(I,R,D,T)
+    printRawData(I,D,T)
     print("\nGrowth Factor")
     printGrowthFactor(I)
 
     iVals = I/totalPopulation
-    rVals = R/totalPopulation
     dVals = D/totalPopulation
 
     tVals = T
 
-    fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals,rVals)
+    fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals)
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])
     ub = np.array([1.0,1.0,1.0,1.0,1.0,1.0])
     doeVals = pyDOE.lhs(len(lb),numRuns,'center')
@@ -235,16 +232,14 @@ if __name__ == "__main__":
     ode = infect.odeSolve(fun = fun, solver = 'scipy45', events = infect.isZero)
     ode.rtol = 1.0e-12
     ode.atol = 1.0e-14
-    ode.y0 = np.array([1.0-iVals[0]-rVals[0]-dVals[0],iVals[0],rVals[0],dVals[0]])
+    ode.y0 = np.array([1.0-iVals[0]-dVals[0],iVals[0],dVals[0]])
     ode.tspan = [0, 100.0*365] # Simulate until no one is still infected...
     ode.solve()
-    infect.save(ode, resB, totalPopulation, tVals-tVals[0], iVals, rVals, dVals, region, True)
+    infect.save(ode, resB, totalPopulation, tVals-tVals[0], iVals, dVals, region, True)
     plt.plot(tVals-tVals[0],totalPopulation*iVals,'b*')
     plt.plot(ode.sol[:,0], (totalPopulation*ode.sol[:,2]),'b-',label="Infected")
-    plt.plot(tVals-tVals[0],totalPopulation*rVals,'r*')
-    plt.plot(ode.sol[:,0], (totalPopulation*ode.sol[:,3]),'r-',label="Recovered")
     plt.plot(tVals-tVals[0],totalPopulation*dVals,'k*')
-    plt.plot(ode.sol[:,0], (totalPopulation*ode.sol[:,4]),'k-',label="Deaths")
+    plt.plot(ode.sol[:,0], (totalPopulation*ode.sol[:,3]),'k-',label="Deaths")
     plt.ylabel("Number of People")
     plt.xlabel("Time (Days)")
     plt.legend()
