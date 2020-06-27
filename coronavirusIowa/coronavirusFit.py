@@ -9,13 +9,13 @@ import infectionFitting as infect
 # from infectionFitting import *
     
 global totalPopulation
-totalPopulation = 7530000000.0
+totalPopulation = 3156000.0
 numRuns = 5
 infectionName = "coronavirus"
 
 
 
-startDate = dt.date(2020,1,22)
+startDate = dt.date(2020,3,1)
 endDate = dt.datetime.now() + dt.timedelta(days=-1)
 endDate = dt.date(endDate.year,endDate.month,endDate.day)
 baseURL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
@@ -24,12 +24,20 @@ def getRegions():
     date = endDate + dt.timedelta(days=-3)
     mdy = getDateStr(date)
     url = baseURL + mdy
-    df = pd.read_csv(url,parse_dates=[2])
-    cr = 'Country/Region'
+    try:
+        df = pd.read_csv(url,parse_dates=[2])
+    except:
+        print(url)
+        df = pd.read_csv(url)
+        print(df)
+        exit()
+    cr = 'Province_State'
     try:
         df[cr]
     except:
-        cr = 'Country_Region'
+        cr = 'Province_State'
+    df = df[df[cr]=='Iowa']
+    cr = 'Admin2'
     regions = df[cr].unique()
     return regions
 
@@ -45,72 +53,44 @@ def getData(date):
 def getDateStr(date):
     m = date.month
     d = date.day
+    y = date.year
+    # print(date.day,date.month,date.year)
     if m < 10:
         mdy = "0%s-"%m
     else: 
         mdy = "%s-"%m
+    # if d < 10:
+    #     mdy += "0%s-2020.csv"%d
+    # else:
+    #     mdy += "%s-2020.csv"%d
+
     if d < 10:
-        mdy += "0%s-2020.csv"%d
+        mdy += "0%s-"%d
     else:
-        mdy += "%s-2020.csv"%d
+        mdy += "%s-"%d
+
+    mdy += "%s.csv"%y
+
+    # print(mdy)
+
     return mdy
 
 def getTotalPopulation(region):
     global totalPopulation
-    if region == 'world':
+    if region == 'all':
         return
-    elif region == 'US':
-        totalPopulation = 327200000.0
-    elif region == 'Italy':
-        totalPopulation = 60480000.0
-    elif region == 'China':
-        totalPopulation = 1386000000.0
-    elif region == 'Mainland China':
-        totalPopulation = 1386000000.0
-    elif region == 'Panama':
-        totalPopulation = 4099000.0
-    elif region == 'Australia':
-        totalPopulation = 24600000.0
-    elif region == 'Croatia':
-        totalPopulation = 4076000.0
-    elif region == 'Burkina Faso':
-        totalPopulation = 19190000.0
-    elif region == 'Albania':
-        totalPopulation = 2877000.0
-    elif region == 'Canada':
-        totalPopulation = 37590000.0
-    elif region == 'United Kingdom':
-        totalPopulation = 66440000.0
-    elif region == 'Philippines':
-        totalPopulation = 104900000.0
-    elif region == 'Nepal':
-        totalPopulation = 29300000.0
-    elif region == 'Sri Lanka':
-        totalPopulation = 21440000.0
-    elif region == 'United Arab Emirates':
-        totalPopulation = 9400000.0
-    elif region == 'Thailand':
-        totalPopulation = 69040000.0
-    elif region == 'Iran':
-        totalPopulation = 81160000.0
-    elif region == 'Iraq':
-        totalPopulation = 38270000.0
-    elif region == 'Mexico':
-        totalPopulation = 129200000.0
-    elif region == 'Germany':
-        totalPopulation = 82790000.0
-    elif region == 'Turkey':
-        totalPopulation = 80810000.0
-    elif region == 'France':
-        totalPopulation = 66890000.0
-    elif region == 'Korea, South':
-        totalPopulation = 51470000.0
-    elif region == 'India':
-        totalPopulation = 1339000000.0
-    elif region == 'Brazil':
-        totalPopulation = 209300000.0
+    elif region == 'Story':
+        totalPopulation = 97117.0
+    elif region == 'Sac':
+        totalPopulation = 9719.0
+    elif region == 'Polk':
+        totalPopulation = 490161.0
+    elif region == 'Linn':
+        totalPopulation = 226706.0
+    elif region == 'Wapello':
+        totalPopulation = 34969.0
     else:
-        print("WARNING: Using world population...")
+        print("WARNING: Using State of Iowa Population...")
 
 
 
@@ -120,7 +100,11 @@ def createTimeData(region):
     deaths = []
     days = []
 
-    if not (region == 'world' or region == 'all'):
+    infectedAll = []
+    deathsAll = []
+    daysAll = []
+
+    if not (region == 'all'):
         posRegions = getRegions()
         if region not in posRegions:
             print("Region: %s, is not a posible region..." % region)
@@ -131,50 +115,51 @@ def createTimeData(region):
     getTotalPopulation(region)
 
     k = 0
+    gotData = False
     while True:
         curDate = startDate + dt.timedelta(days=k)
         k+=1
         if curDate > endDate:
             break
         df = getData(curDate)
-        cr = 'Country/Region'
+        cr = 'Province_State'
         try:
             df[cr]
+            df = df[df[cr]=='Iowa']
+            cr = 'Admin2'
         except:
-            cr = 'Country_Region'
+            cr = 'Province_State'
         try:
             if df is None:
                 continue
             if region == "all":
-                break
-            elif region == "world":
                 infected.append(np.sum(df['Confirmed']))
                 deaths.append(np.sum(df['Deaths']))
                 days.append(k)
             else:
-                if region == 'China':
-                    gg = df.loc[df[cr]=='China']
-                    if len(gg) == 0:
-                        gg = gg = df.loc[df[cr]=='Mainland China']
-                else:
-                    gg = df.loc[df[cr]==region]
+                gg = df.loc[df[cr]==region]
                 numInfected = np.sum(gg['Confirmed'])
                 numDeaths = np.sum(gg['Deaths'])
+                infectedAll.append(numInfected)
+                deathsAll.append(numDeaths)
+                daysAll.append(k)
                 if numInfected*numDeaths > 0:
                     infected.append(np.sum(gg['Confirmed']))
                     deaths.append(np.sum(gg['Deaths']))
                     days.append(k)
+            gotData = True
         except:
-            print(df)
+            if gotData:
+                print(df)
     
     infected = np.array(infected)
     deaths = np.array(deaths)
     days = np.array(days)
 
     ids = []
-    temp = np.where(infected>150)
+    temp = np.where(infected>0)
     ids.append(temp[0])
-    temp = np.where(deaths>15)
+    temp = np.where(deaths>0)
     ids.append(temp[0])
     minIDlen = 1.0e10
     for idc in ids:
@@ -186,6 +171,17 @@ def createTimeData(region):
         return infected[minID],deaths[minID],days[minID]
     else:
         print("Not enough data... Exiting...")
+        daysAll = np.array(daysAll)
+        infectedAll = np.array(infectedAll)
+        deathsAll = np.array(deathsAll)
+        printFlag = False
+        print('Days, Infected, Deaths')
+        for k in range(len(infectedAll)):
+            if infectedAll[k] > 0:
+                printFlag = True
+            if printFlag:
+                print("%d, %d, %d" % (daysAll[k],infectedAll[k],deathsAll[k]))
+                # print(daysAll[k],', ',infectedAll[k],', ',deathsAll[k])
         exit()
 
 def printGrowthFactor(I):
@@ -206,7 +202,7 @@ if __name__ == "__main__":
             print(regions)
             exit()
     else:
-        region = 'US'
+        region = 'Iowa'
     
     print("\nGetting Data")
     I,D,T = createTimeData(region)
