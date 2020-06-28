@@ -2,6 +2,8 @@ import time
 import numpy as np
 import scipy as sp
 
+import matplotlib.pyplot as plt
+
 from tqdm import tqdm
 from datetime import datetime
 from odeSolve import odeSolve
@@ -27,6 +29,10 @@ def sir(t,x,cS,cR,cD,tS,tR,tD):
 
     didt = -cR*np.exp( tR*t)*i + cS*np.exp(-tS*t)*s*i - cD*np.exp(-tD*t)*i
     return np.array([dsdt,didt,dddt])
+
+def showDailyChange(t,X):
+    plt.plot(t,np.gradient(X))
+    plt.show()
 
 def getRes(t,X,iV,dV):
     iVV = np.interp(t,X[:,0],X[:,2])

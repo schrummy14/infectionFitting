@@ -216,6 +216,9 @@ if __name__ == "__main__":
     dVals = D/totalPopulation
 
     tVals = T
+    
+    infect.showDailyChange(tVals,iVals)
+    infect.showDailyChange(tVals,dVals)
 
     fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals)
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])
