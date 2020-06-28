@@ -1,6 +1,8 @@
+import os
 import time
 import numpy as np
 import scipy as sp
+import pandas as pd
 
 import matplotlib.pyplot as plt
 
@@ -149,3 +151,21 @@ def runOne(fun, lb, ub, doeVals, numRuns):
             minCost = cost
             resB = b
     return resB
+
+
+def getData(mdy):
+    fName = '..' + os.sep + 'rawData' + os.sep + mdy
+    try:
+        df = pd.read_csv(fName,parse_dates=[2])
+    except:
+        print("Could not find file:", fName)
+        print("Atempting to download the file...")
+        baseURL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+        url = baseURL + mdy
+        try:
+            df = pd.read_csv(url,parse_dates=[2])
+            df.to_csv(fName)
+        except:
+            print("Could not download file")
+            df = None
+    return df

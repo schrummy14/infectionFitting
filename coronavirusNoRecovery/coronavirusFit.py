@@ -35,11 +35,7 @@ def getRegions():
 
 def getData(date):
     mdy = getDateStr(date)
-    url = baseURL + mdy
-    try:
-        df = pd.read_csv(url,parse_dates=[2])
-    except:
-        df = None
+    df = infect.getData(mdy)
     return df
 
 def getDateStr(date):
@@ -221,8 +217,8 @@ if __name__ == "__main__":
 
     tVals = T
     
-    infect.showDailyChange(tVals,iVals)
-    infect.showDailyChange(tVals,dVals)
+    infect.showDailyChange(T,I)
+    infect.showDailyChange(T,D)
 
     fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals)
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])

@@ -43,11 +43,7 @@ def getRegions():
 
 def getData(date):
     mdy = getDateStr(date)
-    url = baseURL + mdy
-    try:
-        df = pd.read_csv(url,parse_dates=[2])
-    except:
-        df = None
+    df = infect.getData(mdy)
     return df
 
 def getDateStr(date):
@@ -182,6 +178,7 @@ def createTimeData(region):
             if printFlag:
                 print("%d, %d, %d" % (daysAll[k],infectedAll[k],deathsAll[k]))
                 # print(daysAll[k],', ',infectedAll[k],', ',deathsAll[k])
+        infect.showDailyChange(daysAll,infectedAll)
         exit()
 
 def printGrowthFactor(I):
@@ -202,7 +199,7 @@ if __name__ == "__main__":
             print(regions)
             exit()
     else:
-        region = 'Iowa'
+        region = 'Story'
     
     print("\nGetting Data")
     I,D,T = createTimeData(region)
@@ -217,8 +214,8 @@ if __name__ == "__main__":
 
     tVals = T
     
-    infect.showDailyChange(tVals,iVals)
-    infect.showDailyChange(tVals,dVals)
+    infect.showDailyChange(T,I)
+    infect.showDailyChange(T,D)
 
     fun = lambda b: infect.sirFit(b,tVals-tVals[0],iVals,dVals)
     lb = np.array([0.0,0.0,0.0,0.0,0.0,0.0])
