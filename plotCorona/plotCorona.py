@@ -48,7 +48,7 @@ def createTimeDataCountry():
     if region not in posRegions:
         print("Region: %s, is not a posible region..." % region)
         print("Possible Regions:\n")
-        print(posRegions)
+        print(np.sort(posRegions))
         exit()
 
     k = 0
@@ -145,7 +145,7 @@ def createTimeDataState():
     if region not in posRegions:
         print("Region: %s, is not a posible region..." % region)
         print("Possible Regions:\n")
-        print(posRegions)
+        print(np.sort(posRegions))
         exit()
     
 
@@ -253,7 +253,7 @@ def createTimeDataCounty():
         if region not in posRegions:
             print("Region: %s, is not a posible region..." % region)
             print("Possible Regions:\n")
-            print(posRegions)
+            print(np.sort(posRegions))
             exit()
 
     k = 0
@@ -362,11 +362,16 @@ if __name__ == "__main__":
     numArg = len(sys.argv)
     if numArg == 1:
         print("Error: Usage-> plotCorona.py [country] [state {optional}] [county {optional}]")
-        print("               plotCorona.py getRegions [country {optional}] [state {optional}]")
+        print("               plotCorona.py [country {optional}] [state {optional}] getRegions")
         exit()
     
-    if sys.argv[1] == 'getRegions':
-        getRegions()
+    if sys.argv[-1] == 'getRegions':
+        if numArg == 2:
+            print(np.sort(getRegionsCountry()))
+        elif numArg == 3:
+            print(np.sort(getRegionsState()))
+        else:
+            print(np.sort(getRegionsCounty()))
         exit()
 
     country = sys.argv[1]
