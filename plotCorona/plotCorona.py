@@ -123,8 +123,11 @@ def createTimeDataCountry():
 def getRegionsCountry():
     date = endDate + dt.timedelta(days=-3)
     mdy = getDateStr(date)
-    url = baseURL + mdy
-    df = pd.read_csv(url,parse_dates=[2])
+    try:
+        df = pd.read_csv(mdy,parse_dates=[2])
+    except:
+        url = baseURL + mdy
+        df = pd.read_csv(url,parse_dates=[2])
     cr = 'Country/Region'
     try:
         df[cr]
@@ -221,12 +224,11 @@ def getRegionsState():
     mdy = getDateStr(date)
     url = baseURL + mdy
     try:
-        df = pd.read_csv(url,parse_dates=[2])
+        df = pd.read_csv(mdy,parse_dates=[2])
     except:
-        print(url)
-        df = pd.read_csv(url)
-        print(df)
-        exit()
+        url = baseURL + mdy
+        df = pd.read_csv(url,parse_dates=[2])
+
     cr = 'Country/Region'
     try:
         df[cr]
@@ -334,14 +336,11 @@ def getRegionsCounty():
         exit()
     date = endDate + dt.timedelta(days=-3)
     mdy = getDateStr(date)
-    url = baseURL + mdy
     try:
-        df = pd.read_csv(url,parse_dates=[2])
+        df = pd.read_csv(mdy,parse_dates=[2])
     except:
-        print(url)
-        df = pd.read_csv(url)
-        print(df)
-        exit()
+        url = baseURL + mdy
+        df = pd.read_csv(url,parse_dates=[2])
     cr = 'Province_State'
     try:
         df[cr]
@@ -360,6 +359,7 @@ def printRawData(I,D,T):
 if __name__ == "__main__":
 
     numArg = len(sys.argv)
+    print(sys.argv)
     if numArg == 1:
         print("Error: Usage-> plotCorona.py [country] [state {optional}] [county {optional}]")
         print("               plotCorona.py [country {optional}] [state {optional}] getRegions")
